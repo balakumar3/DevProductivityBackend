@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
             enum: {
-                values: ["customer", "restaurant", "delivery", "admin"],
+                values: ["user", "admin"],
                 message: `{VALUE} is a invalid role `
             },
         },
@@ -78,8 +78,8 @@ const userSchema = new mongoose.Schema(
 
 userSchema.methods.getJWT = async function () {
     const user = this;
-    const token = await jwt.sign({ _id: user._id }, process.env.JWT_PRIVATE_KEY, {
-        expiresIn: "1d",
+    const token = await jwt.sign({ _id: user._id, emailId: user.emailId }, process.env.JWT_PRIVATE_KEY, {
+        expiresIn: "5m",
     });
     return token;
 };
