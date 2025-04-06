@@ -7,3 +7,6 @@ https://aistudio.google.com/apikey
 2023mt93180
 
 npm i jsonwebtoken validator bcrypt
+
+docker build -t my-node-app .
+docker run --env-file .env -p 4000:4000 my-node-app
