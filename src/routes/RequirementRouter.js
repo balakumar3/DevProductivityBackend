@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const run = require('../../geminiApi');
+const run = require('../utils/geminiApi');
 const requirementRouter = Router();
 
 requirementRouter.post("/getDetailedRequirements", async (req, res) => {
