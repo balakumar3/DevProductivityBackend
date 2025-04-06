@@ -46,7 +46,7 @@ authRouter.post("/login", async (req, res) => {
         if (isPasswordValid) {
             const token = await user.getJWT();
 
-            res.send({ emailId: user.emailId, token });
+            res.send({ emailId: user.emailId, token, role: user.role });
         } else {
             throw new Error("Invalid credentials");
         }
@@ -61,5 +61,65 @@ authRouter.post("/logout", async (req, res) => {
     });
     res.send("Logout is successfull!!");
 });
+
+// GET all users
+authRouter.get("/users", async (req, res) => {
+    console.log("here get")
+    try {
+        const users = await User.find({}, "-__v"); // exclude __v
+        res.json(users);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT update a user by ID
+authRouter.put("/users/:id", async (req, res) => {
+    try {
+        const { firstName, lastName, emailId, password, role, gender, status } = req.body;
+
+        const updatedFields = {
+            firstName,
+            lastName,
+            emailId,
+            role,
+            gender,
+            status,
+        };
+
+        // Optional: only update password if provided
+        if (password) {
+            updatedFields.password = await bcrypt.hash(password, 10);
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            req.params.id,
+            { $set: updatedFields },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json({ message: "User updated successfully", user: updatedUser });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// DELETE user by ID
+authRouter.delete("/users/:id", async (req, res) => {
+    try {
+        const deletedUser = await User.findByIdAndDelete(req.params.id);
+        if (!deletedUser) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        res.json({ message: "User deleted successfully" });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
 
 module.exports = authRouter;
