@@ -16,10 +16,26 @@ featureRouter.get("/features", async (req, res) => {
 
 // Upvote a feature
 featureRouter.post("/features/:id/vote", async (req, res) => {
-    const feature = await Feature.findById(req.params.id);
-    feature.votes += 1;
-    await feature.save();
-    res.json(feature);
+    const featureId = req.params.id;
+    const user = req.body.user;
+
+    try {
+        const feature = await Feature.findById(featureId);
+
+        if (!feature) return res.status(404).json({ message: "Feature not found" });
+
+        if (feature.votedUsers.includes(user)) {
+            return res.status(400).json({ message: "User has already voted" });
+        }
+
+        feature.votes += 1;
+        feature.votedUsers.push(user);
+        await feature.save();
+
+        res.json(feature);
+    } catch (err) {
+        res.status(500).json({ message: "Error voting feature", error: err });
+    }
 });
 
 // Add a comment to a feature

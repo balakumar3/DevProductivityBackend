@@ -76,7 +76,9 @@ authRouter.get("/users", async (req, res) => {
 // PUT update a user by ID
 authRouter.put("/users/:id", async (req, res) => {
     try {
-        const { firstName, lastName, emailId, password, role, gender, status } = req.body;
+        const { firstName, lastName, emailId, password, role, gender, status, completedTasks,
+            pendingTasks, overdueTasks, avgCompletionTime, teamName
+        } = req.body;
 
         const updatedFields = {
             firstName,
@@ -85,6 +87,11 @@ authRouter.put("/users/:id", async (req, res) => {
             role,
             gender,
             status,
+            completedTasks,
+            pendingTasks,
+            overdueTasks,
+            avgCompletionTime,
+            teamName
         };
 
         // Optional: only update password if provided
@@ -118,6 +125,49 @@ authRouter.delete("/users/:id", async (req, res) => {
         res.json({ message: "User deleted successfully" });
     } catch (err) {
         res.status(400).json({ error: err.message });
+    }
+});
+
+authRouter.get("/users/:emailId", async (req, res) => {
+    const { emailId } = req.params;
+
+    try {
+        const user = await User.findOne(
+            { emailId },
+            "emailId completedTasks pendingTasks overdueTasks avgCompletionTime" // projection
+        );
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json(user);
+    } catch (error) {
+        console.error("Error fetching user metrics:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+authRouter.get("/users/teams/:emailId", async (req, res) => {
+    try {
+        const { emailId } = req.params;
+
+        // Find the user to get their teamName
+        const user = await User.findOne({ emailId });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const teamName = user.teamName;
+
+        // Get all users with the same teamName
+        const teamMembers = await User.find({ teamName });
+
+        // Return the members array inside an object
+        res.json({ members: teamMembers });
+    } catch (error) {
+        console.error("Error fetching team members:", error);
+        res.status(500).json({ message: "Server error" });
     }
 });
 

@@ -57,6 +57,11 @@ const userSchema = new mongoose.Schema(
                 message: `{VALUE} is an invalid account status`,
             },
         },
+        teamName: String,
+        completedTasks: { type: Number, default: 0 },
+        pendingTasks: { type: Number, default: 0 },
+        overdueTasks: { type: Number, default: 0 },
+        avgCompletionTime: { type: Number, default: 0.0 },
         lastActiveAt: {
             type: Date,
             default: Date.now
@@ -79,7 +84,7 @@ const userSchema = new mongoose.Schema(
 userSchema.methods.getJWT = async function () {
     const user = this;
     const token = await jwt.sign({ _id: user._id, emailId: user.emailId, role: user.role }, process.env.JWT_PRIVATE_KEY, {
-        expiresIn: "5m",
+        expiresIn: "40m",
     });
     return token;
 };
